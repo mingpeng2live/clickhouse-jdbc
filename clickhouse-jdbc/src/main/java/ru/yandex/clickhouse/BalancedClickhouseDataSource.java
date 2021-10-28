@@ -121,7 +121,7 @@ public class BalancedClickhouseDataSource implements DataSource {
         this.enabledUrls = this.allUrls;
     }
 
-    static List<String> splitUrl(final String url) {
+    public static List<String> splitUrl(final String url) {
         Matcher m = URL_TEMPLATE.matcher(url);
         if (!m.matches()) {
             throw new IllegalArgumentException("Incorrect url");

@@ -254,7 +254,7 @@ public class ClickHouseResultSet extends AbstractResultSet {
     }
 
     // this method is mocked in a test, do not make it final :-)
-    List<ClickHouseColumnInfo> getColumns() {
+    public List<ClickHouseColumnInfo> getColumns() {
         return Collections.unmodifiableList(columns);
     }
 

@@ -1,12 +1,15 @@
 package ru.yandex.clickhouse.util;
 
+import java.sql.Array;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.TimeZone;
 
+import ru.yandex.clickhouse.ClickHouseArray;
 import ru.yandex.clickhouse.ClickHouseUtil;
+import ru.yandex.clickhouse.domain.ClickHouseDataType;
 import ru.yandex.clickhouse.response.ArrayByteFragment;
 import ru.yandex.clickhouse.response.ByteFragment;
 import ru.yandex.clickhouse.response.ClickHouseColumnInfo;
@@ -35,7 +38,7 @@ public class ClickHouseArrayUtil {
      * @return string representation of an object
      */
     public static String arrayToString(Object object, TimeZone dateTimeZone,
-        TimeZone dateTimeTimeZone)
+        TimeZone dateTimeTimeZone, String... baseTypeName)
     {
         if (!object.getClass().isArray()) {
             throw new IllegalArgumentException("Object must be array");
@@ -43,11 +46,10 @@ public class ClickHouseArrayUtil {
         if (object.getClass().getComponentType().isPrimitive()) {
             return primitiveArrayToString(object);
         }
-        return toString((Object[]) object, dateTimeZone, dateTimeTimeZone);
+        return toString((Object[]) object, dateTimeZone, dateTimeTimeZone, baseTypeName);
     }
 
-
-    public static String toString(Object[] values, TimeZone dateTimeZone, TimeZone dateTimeTimeZone) {
+    public static String toString(Object[] values, TimeZone dateTimeZone, TimeZone dateTimeTimeZone, String... baseTypeName) {
         if (values.length > 0 && values[0] != null && (values[0].getClass().isArray() || values[0] instanceof Collection)) {
             // quote is false to avoid escaping inner '['
             ArrayBuilder builder = new ArrayBuilder(false, dateTimeZone, dateTimeTimeZone);
@@ -61,7 +63,8 @@ public class ClickHouseArrayUtil {
             }
             return builder.build();
         }
-        ArrayBuilder builder = new ArrayBuilder(needQuote(values), dateTimeZone, dateTimeTimeZone);
+        boolean quote = baseTypeName == null || baseTypeName.length == 0 ? needQuote(values) : !"Decimal".equalsIgnoreCase(baseTypeName[0]);
+        ArrayBuilder builder = new ArrayBuilder(quote, dateTimeZone, dateTimeTimeZone);
         for (Object value : values) {
             builder.append(value);
         }
@@ -338,7 +341,7 @@ public class ClickHouseArrayUtil {
             if (size > 0) {
                 builder.append(',');
             }
-            if (value != null) {
+            if (value != null && !"null".equalsIgnoreCase(value.toString())) {
                 if (quote) {
                     builder.append('\'');
                 }

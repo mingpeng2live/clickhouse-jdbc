@@ -2,7 +2,6 @@ package ru.yandex.clickhouse.util;
 
 import static ru.yandex.clickhouse.util.ClickHouseRowBinaryStream.MILLIS_IN_DAY;
 
-import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.IOException;
@@ -24,7 +23,7 @@ import ru.yandex.clickhouse.domain.ClickHouseDataType;
 import ru.yandex.clickhouse.response.ClickHouseColumnInfo;
 import ru.yandex.clickhouse.settings.ClickHouseProperties;
 
-public class ClickHouseRowBinaryInputStream implements Closeable {
+public class ClickHouseRowBinaryInputStream extends InputStream {
     private final DataInputStream in;
     private final TimeZone timeZone;
 
@@ -447,6 +446,21 @@ public class ClickHouseRowBinaryInputStream implements Closeable {
 
     public ClickHouseBitmap readBitmap(ClickHouseDataType innerType) throws IOException {
         return ClickHouseBitmap.deserialize(in, innerType);
+    }
+
+    @Override
+    public int read() throws IOException {
+        return in.read();
+    }
+
+    @Override
+    public int read(byte[] b) throws IOException {
+        return in.read(b);
+    }
+
+    @Override
+    public int read(byte[] b, int off, int len) throws IOException {
+        return in.read(b, off, len);
     }
 
     @Override

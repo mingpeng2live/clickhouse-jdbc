@@ -118,6 +118,13 @@
             <artifactId>testng</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>4.0.3</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -143,8 +150,8 @@
                         </goals>
                         <configuration>
                             <jdkVersion>${jdk.version}</jdkVersion>
-                            <javadocFriendlyComments>true</javadocFriendlyComments>
-                            <packageName>ru.yandex.clickhouse.jdbc.parser</packageName>
+<!--                            <javadocFriendlyComments>true</javadocFriendlyComments>-->
+<!--                            <packageName>ru.yandex.clickhouse.jdbc.parser</packageName>-->
                             <sourceDirectory>src/main/javacc</sourceDirectory>
                             <outputDirectory>src/main/java</outputDirectory>
                         </configuration>

@@ -1,9 +1,6 @@
 package ru.yandex.clickhouse;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Reader;
+import java.io.*;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -32,6 +29,7 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import org.apache.http.entity.AbstractHttpEntity;
+import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import ru.yandex.clickhouse.jdbc.parser.ClickHouseSqlStatement;
 import ru.yandex.clickhouse.jdbc.parser.StatementType;
 import ru.yandex.clickhouse.response.ClickHouseResponse;
+import ru.yandex.clickhouse.response.FastByteArrayOutputStream;
 import ru.yandex.clickhouse.settings.ClickHouseProperties;
 import ru.yandex.clickhouse.settings.ClickHouseQueryParam;
 import ru.yandex.clickhouse.util.ClickHouseArrayUtil;
@@ -304,7 +303,7 @@ public class ClickHousePreparedStatementImpl extends ClickHouseStatementImpl imp
 
     @Override
     public void setArray(int parameterIndex, Array x) throws SQLException {
-        setBind(parameterIndex, ClickHouseArrayUtil.arrayToString(x.getArray(), dateTimeZone, dateTimeTimeZone),
+        setBind(parameterIndex, ClickHouseArrayUtil.arrayToString(x.getArray(), dateTimeZone, dateTimeTimeZone, x.getBaseTypeName()),
             false);
     }
 
@@ -331,6 +330,27 @@ public class ClickHousePreparedStatementImpl extends ClickHouseStatementImpl imp
             batchRows.addAll(buildBatch());
         } else {
             batchStmts.add(buildSql());
+        }
+    }
+
+    public void setBatchSize(int batchSize) {
+        batchRows = new ArrayList<>(batchSize);
+    }
+
+    public void addRow(String rowVal) throws SQLException {
+        if (parsedStmt.getStatementType() == StatementType.INSERT && parsedStmt.hasValues()) {
+//            System.out.println(rowVal);
+            batchRows.add((rowVal + "\n").getBytes(StandardCharsets.UTF_8));
+        } else {
+            throw new SQLException("addRow(String) only supports insert row batch processing");
+        }
+    }
+
+    public void addRow(StringBuilder rowVal) throws SQLException {
+        if (parsedStmt.getStatementType() == StatementType.INSERT && parsedStmt.hasValues()) {
+            batchRows.add(rowVal.append("\n").toString().getBytes(StandardCharsets.UTF_8));
+        } else {
+            throw new SQLException("addRow(String) only supports insert row batch processing");
         }
     }
 
